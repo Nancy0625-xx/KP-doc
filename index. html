@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VOLTRA 教程中心</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0e1116;
+    --card: #171c24;
+    --border: #2a313c;
+    --text: #e8edf2;
+    --muted: #93a0ae;
+    --accent: #00e0b8;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  header { text-align: center; padding: 56px 16px 8px; }
+  header h1 { font-size: 34px; letter-spacing: 6px; }
+  header h1 span { color: var(--accent); }
+  header p { color: var(--muted); margin-top: 8px; font-size: 14px; }
+  .toolbar {
+    max-width: 1000px; margin: 24px auto 0; padding: 0 16px;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  }
+  #search {
+    flex: 1; min-width: 220px; padding: 10px 14px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--text); font-size: 14px; outline: none;
+  }
+  #search:focus { border-color: var(--accent); }
+  .cats { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cat-btn {
+    padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer; font-size: 13px;
+  }
+  .cat-btn.active, .cat-btn:hover { border-color: var(--accent); color: var(--accent); }
+  main {
+    max-width: 1000px; margin: 24px auto 60px; padding: 0 16px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .tag {
+    align-self: flex-start; font-size: 12px; color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 999px; padding: 2px 10px;
+  }
+  .card h2 { font-size: 18px; }
+  .card .desc { color: var(--muted); font-size: 14px; }
+  .card ol { padding-left: 20px; font-size: 14px; display: grid; gap: 4px; }
+  .video { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 10px; }
+  .card a.video-link { color: var(--accent); font-size: 14px; text-decoration: none; }
+  .empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 40px 0; }
+  footer { text-align: center; color: var(--muted); font-size: 13px; padding: 24px 16px 48px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>VOL<span>TRA</span> 教程中心</h1>
+  <p>产品教程 · 功能说明 · 常见问题</p>
+</header>
+
+<div class="toolbar">
+  <input id="search" type="search" placeholder="搜索教程关键词…" />
+  <div class="cats" id="cats"></div>
+</div>
+
+<main id="grid"></main>
+
+<footer>© VOLTRA · 内容持续更新中</footer>
+
+<script>
+/* =====================================================================
+ * 怎么添加 / 修改教程：
+ * 往下面的 TUTORIALS 列表里复制一段 { ... }，改文字即可，保存后刷新生效。
+ * 字段说明：
+ *   title    = 教程标题
+ *   category = 分类（新分类会自动生成筛选按钮）
+ *   desc     = 一句话简介（可留空 ""）
+ *   steps    = 步骤列表，一行一步（可留空 []）
+ *   video    = B站或 YouTube 链接，会自动内嵌播放器（可留空 ""）
+ * ===================================================================== */
+const TUTORIALS = [
+  {
+    title: "示例：首次开箱与激活",
+    category: "入门指南",
+    desc: "从开箱到第一次启动的完整流程。",
+    steps: [
+      "检查包装内物品是否齐全",
+      "按住电源键 3 秒开机",
+      "按屏幕提示完成初始设置",
+    ],
+    video: "",
+  },
+  {
+    title: "示例：App 配对与固件升级",
+    category: "功能说明",
+    desc: "如何连接 App 并保持固件最新。",
+    steps: [
+      "下载并打开 VOLTRA App",
+      "蓝牙开启后选择设备进行配对",
+      "进入「设置-固件更新」检查新版本",
+    ],
+    video: "",
+  },
+  {
+    title: "示例：常见故障排查",
+    category: "故障排查",
+    desc: "设备无法开机 / 无法充电时的自查步骤。",
+    steps: [
+      "确认充电器与接口连接牢固",
+      "长按电源键 10 秒强制重启",
+      "仍无法解决请联系售后",
+    ],
+    video: "",
+  },
+];
+
+/* ============ 以下为页面逻辑，一般不用改 ============ */
+const grid = document.getElementById("grid");
+const catsEl = document.getElementById("cats");
+const searchEl = document.getElementById("search");
+let activeCat = "全部";
+
+["全部", ...new Set(TUTORIALS.map(t => t.category))].forEach(c => {
+  const b = document.createElement("button");
+  b.className = "cat-btn" + (c === "全部" ? " active" : "");
+  b.textContent = c;
+  b.onclick = () => {
+    activeCat = c;
+    document.querySelectorAll(".cat-btn").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    render();
+  };
+  catsEl.appendChild(b);
+});
+
+function embedUrl(url) {
+  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{6,})/);
+  if (yt) return "https://www.youtube.com/embed/" + yt[1];
+  const bl = url.match(/bilibili\.com\/video\/(BV\w+)/);
+  if (bl) return "https://player.bilibili.com/player.html?bvid=" + bl[1] + "&autoplay=0";
+  return null;
+}
+
+function render() {
+  const q = searchEl.value.trim().toLowerCase();
+  const list = TUTORIALS.filter(t =>
+    (activeCat === "全部" || t.category === activeCat) &&
+    (!q || (t.title + " " + t.desc + " " + (t.steps || []).join(" ")).toLowerCase().includes(q))
+  );
+  grid.innerHTML = "";
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty">没有找到匹配的教程</div>';
+    return;
+  }
+  list.forEach(t => {
+    const card = document.createElement("div");
+    card.className = "card";
+    let html = '<span class="tag">' + t.category + "</span><h2>" + t.title + "</h2>";
+    if (t.desc) html += '<div class="desc">' + t.desc + "</div>";
+    if (t.steps && t.steps.length)
+      html += "<ol>" + t.steps.map(s => "<li>" + s + "</li>").join("") + "</ol>";
+    if (t.video) {
+      const em = embedUrl(t.video);
+      if (em) html += '<iframe class="video" src="' + em + '" allowfullscreen loading="lazy"></iframe>';
+      else html += '<a class="video-link" href="' + t.video + '" target="_blank">▶ 观看视频</a>';
+    }
+    card.innerHTML = html;
+    grid.appendChild(card);
+  });
+}
+
+searchEl.addEventListener("input", render);
+render();
+</script>
+</body>
+</html>
