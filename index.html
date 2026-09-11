@@ -14,14 +14,34 @@
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
     background: var(--bg); color: var(--text); line-height: 1.6;
   }
-  .topbar { max-width: 1000px; margin: 0 auto; padding: 24px 16px 0; }
-  .topbar .logo { font-size: 22px; letter-spacing: 4px; color: var(--text); text-decoration: none; }
-  .topbar .logo span { color: var(--accent); }
-  .crumbs { margin-top: 6px; font-size: 13px; color: var(--muted); }
+  header { text-align: center; padding: 56px 16px 8px; }
+  header a { text-decoration: none; }
+  header h1 { font-size: 34px; letter-spacing: 6px; color: var(--text); }
+  header h1 span { color: var(--accent); }
+  header p { color: var(--muted); margin-top: 8px; font-size: 14px; }
+  .toolbar {
+    max-width: 1000px; margin: 24px auto 0; padding: 0 16px;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  }
+  #search {
+    flex: 1; min-width: 220px; padding: 10px 14px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--text); font-size: 14px; outline: none;
+  }
+  #search:focus { border-color: var(--accent); }
+  .cats { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cat-btn {
+    padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer; font-size: 13px;
+    text-decoration: none; display: inline-block;
+  }
+  .cat-btn.active, .cat-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .crumbs { max-width: 1000px; margin: 16px auto 0; padding: 0 16px; font-size: 13px; color: var(--muted); min-height: 20px; }
   .crumbs a { color: var(--accent); text-decoration: none; }
-  main { max-width: 1000px; margin: 20px auto 60px; padding: 0 16px; }
+  main { max-width: 1000px; margin: 16px auto 60px; padding: 0 16px; }
   .page-title { font-size: 26px; }
   .page-desc { color: var(--muted); font-size: 14px; margin: 4px 0 24px; }
+  .result-line { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
   .card {
     display: flex; flex-direction: column; gap: 10px;
@@ -33,6 +53,10 @@
   .card h3 { font-size: 17px; }
   .card p { color: var(--muted); font-size: 13px; }
   .card .meta { margin-top: auto; font-size: 12px; color: var(--accent); }
+  .tag {
+    align-self: flex-start; font-size: 12px; color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 999px; padding: 2px 10px;
+  }
   .detail-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 28px; }
   .detail-card p.para { margin-top: 12px; font-size: 15px; }
   .detail-card p.lead { color: var(--muted); }
@@ -45,10 +69,17 @@
 </head>
 <body>
 
-<div class="topbar">
-  <a class="logo" href="#/">VOL<span>TRA</span> 教程中心</a>
-  <div class="crumbs" id="crumbs"></div>
+<header>
+  <a href="#/"><h1>VOL<span>TRA</span> 教程中心</h1></a>
+  <p>产品教程 · 功能说明 · 常见问题</p>
+</header>
+
+<div class="toolbar">
+  <input id="search" type="search" placeholder="搜索教程关键词…" />
+  <div class="cats" id="cats"></div>
 </div>
+
+<div class="crumbs" id="crumbs"></div>
 
 <main id="app"></main>
 
@@ -58,6 +89,8 @@
 /* =====================================================================
  * 网站结构（三层）：
  *   首页 6 个板块 → 点进板块看文章列表 → 点进文章看具体说明
+ *   顶部搜索框全站可用：输入关键词直接列出所有匹配的文章
+ *   分类按钮 = 6 个板块的快捷入口
  *
  * 怎么改内容（都在下面的 SITE 里改）：
  * 1. 加文章：往对应板块的 topics 里复制一段 { ... }，改文字即可
@@ -72,7 +105,6 @@
 const SITE = [
   {
     name: "首次开箱",
-    icon: "📦",
     desc: "开箱检查、激活与首次设置",
     topics: [
       {
@@ -86,7 +118,6 @@ const SITE = [
   },
   {
     name: "功能介绍",
-    icon: "⚡",
     desc: "各项功能的用法与说明",
     topics: [
       {
@@ -100,7 +131,6 @@ const SITE = [
   },
   {
     name: "训练场景",
-    icon: "🏋️",
     desc: "不同训练目标的场景设置",
     topics: [
       {
@@ -114,7 +144,6 @@ const SITE = [
   },
   {
     name: "配件介绍",
-    icon: "🧩",
     desc: "官方配件的选择与安装",
     topics: [
       {
@@ -128,7 +157,6 @@ const SITE = [
   },
   {
     name: "Beyond+",
-    icon: "✨",
     desc: "会员服务与增值内容",
     topics: [
       {
@@ -142,7 +170,6 @@ const SITE = [
   },
   {
     name: "故障排查",
-    icon: "🛠️",
     desc: "常见问题的自查与解决",
     topics: [
       {
@@ -159,9 +186,24 @@ const SITE = [
 /* ============ 以下为页面逻辑，一般不用改 ============ */
 const app = document.getElementById("app");
 const crumbs = document.getElementById("crumbs");
+const catsEl = document.getElementById("cats");
+const searchEl = document.getElementById("search");
 
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const seg = s => encodeURIComponent(s);
+
+SITE.forEach(c => {
+  const b = document.createElement("a");
+  b.className = "cat-btn";
+  b.textContent = c.name;
+  b.href = "#/" + seg(c.name);
+  catsEl.appendChild(b);
+});
+const allBtn = document.createElement("a");
+allBtn.className = "cat-btn active";
+allBtn.textContent = "全部";
+allBtn.href = "#/";
+catsEl.prepend(allBtn);
 
 function embedUrl(url) {
   const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{6,})/);
@@ -187,8 +229,15 @@ function topicBody(t) {
   return html;
 }
 
+function articleCard(cat, t) {
+  return '<a class="card" href="#/' + seg(cat.name) + "/" + seg(t.title) + '">' +
+    '<span class="tag">' + esc(cat.name) + "</span><h3>" + esc(t.title) + "</h3><p>" +
+    esc(t.desc || "") + "</p></a>";
+}
+
 function renderHome() {
   crumbs.innerHTML = "";
+  document.querySelectorAll(".cat-btn").forEach(x => x.classList.toggle("active", x.textContent === "全部"));
   app.innerHTML =
     '<h2 class="page-title">选择一个板块</h2><p class="page-desc">点击进入查看对应教程</p><div class="grid">' +
     SITE.map(c =>
@@ -200,6 +249,7 @@ function renderHome() {
 function renderCategory(catName) {
   const c = SITE.find(x => x.name === catName);
   crumbs.innerHTML = '<a href="#/">首页</a> / ' + esc(catName);
+  document.querySelectorAll(".cat-btn").forEach(x => x.classList.toggle("active", x.textContent === catName));
   if (!c) { app.innerHTML = '<div class="empty">板块不存在</div>'; return; }
   const list = c.topics.length
     ? '<div class="grid">' + c.topics.map(t =>
@@ -217,18 +267,38 @@ function renderDetail(catName, topicTitle) {
   const t = c && c.topics.find(x => x.title === topicTitle);
   crumbs.innerHTML =
     '<a href="#/">首页</a> / <a href="#/' + seg(catName) + '">' + esc(catName) + "</a> / " + esc(topicTitle);
+  document.querySelectorAll(".cat-btn").forEach(x => x.classList.toggle("active", x.textContent === catName));
   if (!t) { app.innerHTML = '<div class="empty">文章不存在或内容准备中…</div>'; return; }
   app.innerHTML = '<h2 class="page-title">' + esc(t.title) + '</h2><div class="detail-card">' + topicBody(t) + "</div>";
 }
 
+function renderSearch(q) {
+  crumbs.innerHTML = "";
+  document.querySelectorAll(".cat-btn").forEach(x => x.classList.remove("active"));
+  const hits = [];
+  SITE.forEach(c => c.topics.forEach(t => {
+    const hay = (c.name + " " + t.title + " " + (t.desc || "") + " " +
+      (t.text == null ? "" : [].concat(t.text).join(" ")) + " " + (t.steps || []).join(" ")).toLowerCase();
+    if (hay.includes(q)) hits.push({ c, t });
+  }));
+  app.innerHTML = hits.length
+    ? '<div class="result-line">找到 ' + hits.length + ' 篇相关教程</div><div class="grid">' +
+      hits.map(h => articleCard(h.c, h.t)).join("") + "</div>"
+    : '<div class="empty">没有找到匹配的教程</div>';
+}
+
 function route() {
+  const q = searchEl.value.trim().toLowerCase();
+  if (q) { renderSearch(q); window.scrollTo(0, 0); return; }
   const parts = decodeURIComponent(location.hash.replace(/^#\/?/, "")).split("/").filter(Boolean);
   if (!parts.length) renderHome();
   else if (parts.length === 1) renderCategory(parts[0]);
   else renderDetail(parts[0], parts.slice(1).join("/"));
   window.scrollTo(0, 0);
 }
-window.addEventListener("hashchange", route);
+
+window.addEventListener("hashchange", () => { searchEl.value = ""; route(); });
+searchEl.addEventListener("input", route);
 route();
 </script>
 </body>
