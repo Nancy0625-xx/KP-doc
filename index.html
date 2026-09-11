@@ -7,141 +7,161 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
-    --bg: #0e1116;
-    --card: #171c24;
-    --border: #2a313c;
-    --text: #e8edf2;
-    --muted: #93a0ae;
-    --accent: #00e0b8;
+    --bg: #0e1116; --card: #171c24; --border: #2a313c;
+    --text: #e8edf2; --muted: #93a0ae; --accent: #00e0b8;
   }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
+    background: var(--bg); color: var(--text); line-height: 1.6;
   }
-  header { text-align: center; padding: 56px 16px 8px; }
-  header h1 { font-size: 34px; letter-spacing: 6px; }
-  header h1 span { color: var(--accent); }
-  header p { color: var(--muted); margin-top: 8px; font-size: 14px; }
-  .toolbar {
-    max-width: 1000px; margin: 24px auto 0; padding: 0 16px;
-    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-  }
-  #search {
-    flex: 1; min-width: 220px; padding: 10px 14px; border-radius: 10px;
-    border: 1px solid var(--border); background: var(--card);
-    color: var(--text); font-size: 14px; outline: none;
-  }
-  #search:focus { border-color: var(--accent); }
-  .cats { display: flex; flex-wrap: wrap; gap: 8px; }
-  .cat-btn {
-    padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
-    background: transparent; color: var(--muted); cursor: pointer; font-size: 13px;
-  }
-  .cat-btn.active, .cat-btn:hover { border-color: var(--accent); color: var(--accent); }
-  main {
-    max-width: 1000px; margin: 24px auto 60px; padding: 0 16px;
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;
-  }
+  .topbar { max-width: 1000px; margin: 0 auto; padding: 24px 16px 0; }
+  .topbar .logo { font-size: 22px; letter-spacing: 4px; color: var(--text); text-decoration: none; }
+  .topbar .logo span { color: var(--accent); }
+  .crumbs { margin-top: 6px; font-size: 13px; color: var(--muted); }
+  .crumbs a { color: var(--accent); text-decoration: none; }
+  main { max-width: 1000px; margin: 20px auto 60px; padding: 0 16px; }
+  .page-title { font-size: 26px; }
+  .page-desc { color: var(--muted); font-size: 14px; margin: 4px 0 24px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
   .card {
+    display: flex; flex-direction: column; gap: 10px;
     background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-    padding: 20px; display: flex; flex-direction: column; gap: 12px;
+    padding: 22px; color: var(--text); text-decoration: none; transition: border-color .15s;
   }
-  .tag {
-    align-self: flex-start; font-size: 12px; color: var(--accent);
-    border: 1px solid var(--accent); border-radius: 999px; padding: 2px 10px;
-  }
-  .card h2 { font-size: 18px; }
-  .card .desc { color: var(--muted); font-size: 14px; }
-  .card ol { padding-left: 20px; font-size: 14px; display: grid; gap: 4px; }
-  .video { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 10px; }
-  .card a.video-link { color: var(--accent); font-size: 14px; text-decoration: none; }
-  .empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 40px 0; }
+  .card:hover { border-color: var(--accent); }
+  .card .icon { font-size: 30px; }
+  .card h3 { font-size: 17px; }
+  .card p { color: var(--muted); font-size: 13px; }
+  .card .meta { margin-top: auto; font-size: 12px; color: var(--accent); }
+  .detail-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 28px; }
+  .detail-card p.para { margin-top: 12px; font-size: 15px; }
+  .detail-card p.lead { color: var(--muted); }
+  ol.steps { padding-left: 22px; margin-top: 14px; display: grid; gap: 6px; font-size: 15px; }
+  .video { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 10px; margin-top: 18px; }
+  a.video-link { color: var(--accent); font-size: 14px; text-decoration: none; }
+  .empty { text-align: center; color: var(--muted); padding: 60px 0; }
   footer { text-align: center; color: var(--muted); font-size: 13px; padding: 24px 16px 48px; }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>VOL<span>TRA</span> 教程中心</h1>
-  <p>产品教程 · 功能说明 · 常见问题</p>
-</header>
-
-<div class="toolbar">
-  <input id="search" type="search" placeholder="搜索教程关键词…" />
-  <div class="cats" id="cats"></div>
+<div class="topbar">
+  <a class="logo" href="#/">VOL<span>TRA</span> 教程中心</a>
+  <div class="crumbs" id="crumbs"></div>
 </div>
 
-<main id="grid"></main>
+<main id="app"></main>
 
 <footer>© VOLTRA · 内容持续更新中</footer>
 
 <script>
 /* =====================================================================
- * 怎么添加 / 修改教程：
- * 往下面的 TUTORIALS 列表里复制一段 { ... }，改文字即可，保存后刷新生效。
- * 字段说明：
- *   title    = 教程标题
- *   category = 分类（新分类会自动生成筛选按钮）
- *   desc     = 一句话简介（可留空 ""）
- *   steps    = 步骤列表，一行一步（可留空 []）
- *   video    = B站或 YouTube 链接，会自动内嵌播放器（可留空 ""）
+ * 网站结构（三层）：
+ *   首页 6 个板块 → 点进板块看文章列表 → 点进文章看具体说明
+ *
+ * 怎么改内容（都在下面的 SITE 里改）：
+ * 1. 加文章：往对应板块的 topics 里复制一段 { ... }，改文字即可
+ * 2. 加板块：往 SITE 里复制一段 { name, icon, desc, topics: [] }
+ * 文章可用字段：
+ *   title = 文章标题（同一板块内不要重复）
+ *   desc  = 一句话简介，显示在列表卡片上（可留空 ""）
+ *   text  = 正文段落，一段字符串或多段数组（可留空 ""）
+ *   steps = 操作步骤，一行一步（可留空 []）
+ *   video = B站或 YouTube 链接，会自动内嵌播放器（可留空 ""）
  * ===================================================================== */
-const TUTORIALS = [
+const SITE = [
   {
-    title: "示例：首次开箱与激活",
-    category: "入门指南",
-    desc: "从开箱到第一次启动的完整流程。",
-    steps: [
-      "检查包装内物品是否齐全",
-      "按住电源键 3 秒开机",
-      "按屏幕提示完成初始设置",
+    name: "首次开箱",
+    icon: "📦",
+    desc: "开箱检查、激活与首次设置",
+    topics: [
+      {
+        title: "示例：开箱检查清单",
+        desc: "收到设备后先确认这些物品。",
+        text: "开箱请先检查外观有无磕碰，再按清单核对配件是否齐全。",
+        steps: ["主机 x1", "充电器 x1", "快速入门指南 x1"],
+        video: "",
+      },
     ],
-    video: "",
   },
   {
-    title: "示例：App 配对与固件升级",
-    category: "功能说明",
-    desc: "如何连接 App 并保持固件最新。",
-    steps: [
-      "下载并打开 VOLTRA App",
-      "蓝牙开启后选择设备进行配对",
-      "进入「设置-固件更新」检查新版本",
+    name: "功能介绍",
+    icon: "⚡",
+    desc: "各项功能的用法与说明",
+    topics: [
+      {
+        title: "示例：基础操作说明",
+        desc: "设备的核心功能一览。",
+        text: "",
+        steps: ["功能一：……", "功能二：……"],
+        video: "",
+      },
     ],
-    video: "",
   },
   {
-    title: "示例：常见故障排查",
-    category: "故障排查",
-    desc: "设备无法开机 / 无法充电时的自查步骤。",
-    steps: [
-      "确认充电器与接口连接牢固",
-      "长按电源键 10 秒强制重启",
-      "仍无法解决请联系售后",
+    name: "训练场景",
+    icon: "🏋️",
+    desc: "不同训练目标的场景设置",
+    topics: [
+      {
+        title: "示例：场景模式设置",
+        desc: "如何按训练目标选择模式。",
+        text: "",
+        steps: ["进入场景菜单", "选择对应模式"],
+        video: "",
+      },
     ],
-    video: "",
+  },
+  {
+    name: "配件介绍",
+    icon: "🧩",
+    desc: "官方配件的选择与安装",
+    topics: [
+      {
+        title: "示例：配件安装方法",
+        desc: "各配件的安装步骤。",
+        text: "",
+        steps: ["取出配件", "按说明安装"],
+        video: "",
+      },
+    ],
+  },
+  {
+    name: "Beyond+",
+    icon: "✨",
+    desc: "会员服务与增值内容",
+    topics: [
+      {
+        title: "示例：Beyond+ 会员说明",
+        desc: "会员权益与开通方式。",
+        text: "",
+        steps: ["打开 App", "进入会员页面开通"],
+        video: "",
+      },
+    ],
+  },
+  {
+    name: "故障排查",
+    icon: "🛠️",
+    desc: "常见问题的自查与解决",
+    topics: [
+      {
+        title: "示例：无法开机怎么办",
+        desc: "设备无法开机时的自查步骤。",
+        text: "如果设备长时间未使用，电池可能进入保护状态，请先充电 30 分钟再尝试开机。",
+        steps: ["确认充电器与接口连接牢固", "长按电源键 10 秒强制重启", "仍无法解决请联系售后"],
+        video: "",
+      },
+    ],
   },
 ];
 
 /* ============ 以下为页面逻辑，一般不用改 ============ */
-const grid = document.getElementById("grid");
-const catsEl = document.getElementById("cats");
-const searchEl = document.getElementById("search");
-let activeCat = "全部";
+const app = document.getElementById("app");
+const crumbs = document.getElementById("crumbs");
 
-["全部", ...new Set(TUTORIALS.map(t => t.category))].forEach(c => {
-  const b = document.createElement("button");
-  b.className = "cat-btn" + (c === "全部" ? " active" : "");
-  b.textContent = c;
-  b.onclick = () => {
-    activeCat = c;
-    document.querySelectorAll(".cat-btn").forEach(x => x.classList.remove("active"));
-    b.classList.add("active");
-    render();
-  };
-  catsEl.appendChild(b);
-});
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const seg = s => encodeURIComponent(s);
 
 function embedUrl(url) {
   const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{6,})/);
@@ -151,36 +171,65 @@ function embedUrl(url) {
   return null;
 }
 
-function render() {
-  const q = searchEl.value.trim().toLowerCase();
-  const list = TUTORIALS.filter(t =>
-    (activeCat === "全部" || t.category === activeCat) &&
-    (!q || (t.title + " " + t.desc + " " + (t.steps || []).join(" ")).toLowerCase().includes(q))
-  );
-  grid.innerHTML = "";
-  if (!list.length) {
-    grid.innerHTML = '<div class="empty">没有找到匹配的教程</div>';
-    return;
-  }
-  list.forEach(t => {
-    const card = document.createElement("div");
-    card.className = "card";
-    let html = '<span class="tag">' + t.category + "</span><h2>" + t.title + "</h2>";
-    if (t.desc) html += '<div class="desc">' + t.desc + "</div>";
-    if (t.steps && t.steps.length)
-      html += "<ol>" + t.steps.map(s => "<li>" + s + "</li>").join("") + "</ol>";
-    if (t.video) {
-      const em = embedUrl(t.video);
-      if (em) html += '<iframe class="video" src="' + em + '" allowfullscreen loading="lazy"></iframe>';
-      else html += '<a class="video-link" href="' + t.video + '" target="_blank">▶ 观看视频</a>';
-    }
-    card.innerHTML = html;
-    grid.appendChild(card);
+function topicBody(t) {
+  let html = "";
+  if (t.desc) html += '<p class="para lead">' + esc(t.desc) + "</p>";
+  (t.text == null ? [] : [].concat(t.text)).forEach(p => {
+    html += '<p class="para">' + esc(p) + "</p>";
   });
+  if (t.steps && t.steps.length)
+    html += "<ol class='steps'>" + t.steps.map(s => "<li>" + esc(s) + "</li>").join("") + "</ol>";
+  if (t.video) {
+    const em = embedUrl(t.video);
+    if (em) html += '<iframe class="video" src="' + em + '" allowfullscreen loading="lazy"></iframe>';
+    else html += '<a class="video-link" href="' + esc(t.video) + '" target="_blank">▶ 观看视频</a>';
+  }
+  return html;
 }
 
-searchEl.addEventListener("input", render);
-render();
+function renderHome() {
+  crumbs.innerHTML = "";
+  app.innerHTML =
+    '<h2 class="page-title">选择一个板块</h2><p class="page-desc">点击进入查看对应教程</p><div class="grid">' +
+    SITE.map(c =>
+      '<a class="card" href="#/' + seg(c.name) + '"><div class="icon">' + c.icon + "</div><h3>" +
+      esc(c.name) + "</h3><p>" + esc(c.desc) + '</p><div class="meta">' + c.topics.length + " 篇教程</div></a>"
+    ).join("") + "</div>";
+}
+
+function renderCategory(catName) {
+  const c = SITE.find(x => x.name === catName);
+  crumbs.innerHTML = '<a href="#/">首页</a> / ' + esc(catName);
+  if (!c) { app.innerHTML = '<div class="empty">板块不存在</div>'; return; }
+  const list = c.topics.length
+    ? '<div class="grid">' + c.topics.map(t =>
+        '<a class="card" href="#/' + seg(c.name) + "/" + seg(t.title) + '"><h3>' +
+        esc(t.title) + "</h3><p>" + esc(t.desc || "") + "</p></a>"
+      ).join("") + "</div>"
+    : '<div class="empty">内容准备中…</div>';
+  app.innerHTML =
+    '<h2 class="page-title">' + c.icon + " " + esc(c.name) + '</h2><p class="page-desc">' +
+    esc(c.desc) + "</p>" + list;
+}
+
+function renderDetail(catName, topicTitle) {
+  const c = SITE.find(x => x.name === catName);
+  const t = c && c.topics.find(x => x.title === topicTitle);
+  crumbs.innerHTML =
+    '<a href="#/">首页</a> / <a href="#/' + seg(catName) + '">' + esc(catName) + "</a> / " + esc(topicTitle);
+  if (!t) { app.innerHTML = '<div class="empty">文章不存在或内容准备中…</div>'; return; }
+  app.innerHTML = '<h2 class="page-title">' + esc(t.title) + '</h2><div class="detail-card">' + topicBody(t) + "</div>";
+}
+
+function route() {
+  const parts = decodeURIComponent(location.hash.replace(/^#\/?/, "")).split("/").filter(Boolean);
+  if (!parts.length) renderHome();
+  else if (parts.length === 1) renderCategory(parts[0]);
+  else renderDetail(parts[0], parts.slice(1).join("/"));
+  window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+route();
 </script>
 </body>
 </html>
